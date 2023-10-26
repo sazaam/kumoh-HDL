@@ -1,4 +1,4 @@
-module test(x, D, en);
+module test(x, D, en);  // The Decoder Fast Version
 
     input[2:0]     x ;
     
