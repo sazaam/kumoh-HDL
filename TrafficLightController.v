@@ -52,92 +52,66 @@ module TrafficLightController(clk, standby, test,
 	/////////////////////  END TIME CLOCKS CONTROL
 	
 	
-	task state_change( input s) ;
-		begin
-			state <= s;
-			TimeCnt <= 0 ;
-			onTime <= 0;
-		end
-	endtask
-	
-	task state_check_and_change( input s) ;
-		begin
-			if(TimeCnt >= onTime) begin
-				state_change(s) ;
-			end
-		end
-	endtask
-	
-	task increment();
-		begin
-			TimeCnt <= TimeCnt + 1 ;
-		end
-	endtask
-	
-	task state_ensure( input isTest, input s) ;
-		begin
-			onTime = isTest ?  TESTTime :
-						s == RY ? RYTime :
-						s == GR ? GRTime :
-						s == YR ? YRTime :
-									 RGTime ;
-		end
-	endtask
-	
-	
 	always @(posedge clk1Hz or posedge standby) begin
 		
 		if(standby) begin /// KILL ALL STATE LOGIC IF ON STANDBY
 			// i-e RESET ALL
-			state_change(YY);
+			TimeCnt <= 0 ;
+			onTime <= 0 ;
+			state <= YY ;
 		end else
 			
 			case(state)
 				RY:begin
 					
-					if(onTime != RYTime) onTime <= RYTime ;
-					TimeCnt <= TimeCnt + 1 ;
-					if(TimeCnt >= onTime) state <= GR ;
+					onTime <= test ? TESTTime : RYTime ;
 					
+					TimeCnt <= TimeCnt + 1 ;
+					if(TimeCnt >= onTime - 1) begin
+						TimeCnt <= 0 ;
+						state <= GR ;
+					end
 					
 					
 				end
 				GR:begin
 				
+					onTime <= test ? TESTTime : GRTime ;
 					
-					
-					if(onTime != GRTime) onTime <= GRTime ;
 					TimeCnt <= TimeCnt + 1 ;
-					if(TimeCnt >= onTime) state <= YR ;
-					
+					if(TimeCnt >= onTime - 1) begin
+						TimeCnt <= 0 ;
+						state <= YR ;
+					end
 					
 					
 				end
 				
 				YR: begin
 					
-					if(onTime != YRTime) onTime <= YRTime ;
-					TimeCnt <= TimeCnt + 1 ;
-					if(TimeCnt >= onTime) state <= RG ;
+					onTime <= test ? TESTTime : YRTime ;
 					
+					TimeCnt <= TimeCnt + 1 ;
+					if(TimeCnt >= onTime - 1) begin
+						TimeCnt <= 0 ;
+						state <= RG ;
+						
+					end
 					
 				end
-				RG:begin
+				default:begin
+					state = RG ;
+					onTime <= test ? TESTTime : RGTime ;
 					
-					if(onTime != RGTime) onTime <= RGTime ;
 					TimeCnt <= TimeCnt + 1 ;
-					if(TimeCnt >= onTime) state <= RY ;
+					if(TimeCnt >= onTime - 1) begin
+						TimeCnt <= 0 ;
+						state <= RY ;
+						
+					end
 					
-					/*
-					state_ensure(test, 3'b100) ;
-					increment() ;
-					state_check_and_change(3'b001);
-					*/
 				end
 				
-				default:begin
-					state_change(RY);
-				end
 			endcase
 			
 		
@@ -209,6 +183,39 @@ module TrafficLightController(clk, standby, test,
 	//////////////////// END FND
 	
 	
+	/*
+	task state_change( input s) ;
+		begin
+			state <= s;
+			TimeCnt <= 0 ;
+			onTime <= 0;
+		end
+	endtask
+	
+	task state_check_and_change( input s) ;
+		begin
+			if(TimeCnt >= onTime) begin
+				state_change(s) ;
+			end
+		end
+	endtask
+	
+	task increment();
+		begin
+			TimeCnt <= TimeCnt + 1 ;
+		end
+	endtask
+	
+	task state_ensure( input isTest, input s) ;
+		begin
+			onTime = isTest ?  TESTTime :
+						s == RY ? RYTime :
+						s == GR ? GRTime :
+						s == YR ? YRTime :
+									 RGTime ;
+		end
+	endtask
+	*/
 	
 
 endmodule
