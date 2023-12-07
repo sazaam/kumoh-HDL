@@ -15,9 +15,7 @@ module TrafficLightController(clk, standby, test,
 					G2en, Y2en, R2en ;
 	
 	parameter	YY=3'b000, RY=3'b001, GR=3'b010, YR=3'b011, RG=3'b100 ;
-	reg[2:0] 	state=YY ;
-	
-	
+	reg[2:0]		state=YY ;
 	
 	
 	
@@ -96,29 +94,50 @@ module TrafficLightController(clk, standby, test,
 			
 			case(state)
 				RY:begin
-				
-					state_ensure(test, state) ;
-					increment() ;
-					state_check_and_change(GR);
+					
+					if(onTime != RYTime) onTime <= RYTime ;
+					TimeCnt <= TimeCnt + 1 ;
+					if(TimeCnt >= onTime) state <= GR ;
+					
+					
 					
 				end
 				GR:begin
-					state_ensure(test, state) ;
-					increment() ;
-					state_check_and_change(YR);
+				
+					
+					
+					if(onTime != GRTime) onTime <= GRTime ;
+					TimeCnt <= TimeCnt + 1 ;
+					if(TimeCnt >= onTime) state <= YR ;
+					
+					
+					
 				end
 				
 				YR: begin
-					state_ensure(test, state) ;
-					increment() ;
-					state_check_and_change(RG);
+					
+					if(onTime != YRTime) onTime <= YRTime ;
+					TimeCnt <= TimeCnt + 1 ;
+					if(TimeCnt >= onTime) state <= RG ;
+					
+					
 				end
 				RG:begin
-					state_ensure(test, state) ;
+					
+					if(onTime != RGTime) onTime <= RGTime ;
+					TimeCnt <= TimeCnt + 1 ;
+					if(TimeCnt >= onTime) state <= RY ;
+					
+					/*
+					state_ensure(test, 3'b100) ;
 					increment() ;
-					state_check_and_change(RY);
+					state_check_and_change(3'b001);
+					*/
 				end
 				
+				default:begin
+					state_change(RY);
+				end
 			endcase
 			
 		
